@@ -26,11 +26,9 @@ const int offsetB = 1;
 
 // Constants for ultrasound range finder
 const unsigned int MAX_DIST = 23200;  // Maximum range of ultrasounic range finder [m]
-const float SPEED_OF_SOUND = 343;     // Speed of sound in air [m/sec]
+const float SPEED_OF_SOUND = 343.0f;  // Speed of sound in air [m/sec]
 
 // Variables for ultrasound range finder
-unsigned long t1, t2, pulse_width;
-float distance;
 
 // Create a new motor object
 Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY);
@@ -38,7 +36,7 @@ Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
 // Functions
 void runMotor();
-void checkRange();
+float getRange();
 
 void setup()
 {
@@ -56,7 +54,10 @@ void setup()
 
 void loop()
 {
-	runMotor();
+	float distance;
+
+  runMotor();
+  distance = getRange();
 
 	// Wait 1 sec before repeating loop
 	delay(1000);
@@ -69,8 +70,10 @@ void runMotor()
   motor1.brake();
 }
 
-void checkRange()
+float getRange()
 {
+  unsigned long t1, t2, pulse_width;
+
   // Trigger ultrsound pulse with 10 usec pulse
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
@@ -84,4 +87,7 @@ void checkRange()
   while(digitalRead(ECHO) == 1);
   t2 = millis();
   pulse_width = t2 - t1;
+
+  // Convert pulse length [msec] to distance [cm] with speed of sound [m/sec]
+  return SPEED_OF_SOUND * (pulse_width/2/1000.0f)*100.0f;
 }
